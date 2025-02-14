@@ -1,0 +1,417 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+    overflow: hidden; /* Esto oculta el scroll en general */
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #145DA0, #ff6b95);
+    background-size: 200% 200%;
+    animation: gradientAnimation 5s ease infinite;
+   
+}
+
+/* Animación del degradado de fondo */
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.form-container {
+    width: 400px;
+    padding: 2.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.5s, box-shadow 0.5s;
+}
+
+/* Efecto hover para la sección del formulario */
+.form-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+}
+
+.register-section, .login-section {
+    width: 400px;
+    padding: 2.5rem;
+    z-index: 1;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    display: none; /* Se oculta por defecto */
+}
+
+.active {
+    display: block; /* Solo la sección activa será visible */
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Colores personalizados para las secciones */
+.register-section {
+    background: linear-gradient(135deg, #2b3595, #1E3C72);
+    color: white;
+}
+
+.login-section {
+    background: linear-gradient(135deg, #ff6b95, #ff476f);
+    color: white;
+}
+.image-container {
+    display: flex;
+    justify-content: center; /* Centra horizontalmente el contenido */
+    align-items: center; /* Centra verticalmente el contenido */
+    height: 100vh; /* Ocupa toda la altura de la ventana */
+    transform: translateX(20px);
+}
+
+.login-wrapper {
+    display: flex;
+    align-items: stretch; /* Asegura que los hijos ocupen el mismo alto */
+}
+
+.image-container {
+    width: 400px; /* Asegúrate de que sea del mismo tamaño que el formulario */
+    height: 520px; /* Ajusta la altura según tus necesidades */
+    margin-right: 20px; /* Espacio entre la imagen y el formulario */
+    overflow: hidden; /* Oculta el desbordamiento de la imagen */
+    border-radius: 12px; /* Añade bordes redondeados si lo deseas */
+    background: rgba(255, 255, 255, 0.2); /* Fondo del cuadrado */
+}
+
+.image-container img {
+    width: 100%; /* Asegura que la imagen ocupe todo el contenedor */
+    height: 100%; /* Asegura que la imagen ocupe todo el contenedor */
+    object-fit: cover; /* Mantiene la relación de aspecto de la imagen */
+}
+
+.login-section {
+    width: 400px; /* Ancho del formulario */
+    padding: 2.5rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    font-weight: 500;
+    text-align: center; 
+}
+
+/* Estilos para los inputs */
+input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+    padding: 0.5rem 0; /* Mantiene el padding superior e inferior */
+    padding-left: 10px; /* Espaciado a la izquierda */
+    color: white;
+    font-size: 1rem;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    transition: border-bottom-color 0.3s ease, box-shadow 0.3s ease; /* Transición de color y sombra */
+}
+
+/* Efecto de sombra al enfocar el input */
+input:focus {
+    outline: none;
+    border-bottom-color: rgb(255, 255, 255); /* Cambia el color del borde al enfocar */
+    box-shadow: 0 3px 8px rgba(248, 248, 248, 0.3); /* Sombra al enfocar */
+}
+
+/* Colores de placeholder */
+input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.3s ease; /* Transición para el color del placeholder */
+}
+
+/* Cambio de color del placeholder al enfocar */
+input:focus::placeholder {
+    color: rgba(255, 255, 255, 0.5); /* Cambia el color del placeholder al enfocar */
+}
+
+/* Espacio superior específico para cada input */
+input[type="email"] {
+    margin-top: 10px; /* Espacio superior para el input de correo */
+}
+
+input[type="password"] {
+    margin-top: 10px; /* Espacio superior para el input de contraseña */
+    margin-bottom: 30px; /* Espacio inferior para el input de contraseña */
+}
+
+/* Animación de pulsación */
+
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05); /* Aumenta ligeramente el tamaño */
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+.logo{
+    margin-top: -40px;   
+    transform: translateX(40px);
+}
+
+.btnAcess {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 6px;
+    background-color: rgb(0, 0, 0);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.btnAcess:hover{
+    background-color: rgb(15, 15, 15);
+}
+
+.login-section button {
+    color: #ff6b95;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    background-color: #f0f0f0;
+}
+
+.forgot-password {
+    text-align: center; 
+    margin-top: 20px;
+}
+
+.forgot-password a {
+    color: #000000;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.forgot-password a:hover {
+    text-decoration: none;
+    color: #ffffff;
+}
+
+/* Sección del contenedor del login con botón adicional */
+#login {
+    margin-top: 2rem;
+    text-align: center;
+    color: #333;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1rem;
+    border-radius: 6px;
+    width: 400px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+#login button {
+    background-color: #ff6b95;
+    color: white;
+    margin-top: 1rem;
+}
+
+.toggle-text{
+text-align: center;
+margin-top: 20px;
+}
+
+.toggle-text a {
+    color: #000000; /* Color de tu preferencia */
+    font-weight: bold;
+    text-decoration: underline;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.toggle-text a:hover{
+    color: #000742;
+}
+
+/* Contenedor para alinear los botones */
+.social-login-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 1.2rem;
+}
+
+.facebook-button{
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease; 
+}
+
+.facebook-button {
+    background-color: #000000;
+    color: #0078d4;
+}
+
+/* botón de Google y Microsoft */
+.google-button, .microsoft-button {
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.google-button {
+    background-color: #000000;
+    color: #000000;
+}
+
+.microsoft-button {
+    background-color: #000000;
+    color: #0078d4;
+}
+
+/* Efecto hover */
+.google-button:hover, .microsoft-button:hover, .facebook-button:hover {
+    transform: translateY(-2px);
+}
+
+/* Tamaño y estilo de los íconos */
+.google-button i, .microsoft-button i, .facebook-button i {
+    font-size: 20px; /* Asegura que ambos íconos tengan el mismo tamaño */
+    line-height: 1; /* Asegura que el ícono esté centrado */
+}
+
+.btnRegistro {
+    display: block; /* Necesario para aplicar margin auto */
+    margin: 0 auto;
+    background-color: #ffffff; /* Color de fondo */
+    color: #000000; /* Color del texto */
+    padding: 10px 20px; /* Espaciado interno */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    font-size: 16px; /* Tamaño de la fuente */
+    cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Transición suave */
+    margin-bottom: 10px;
+}
+
+.btnRegistro:hover {
+    background-color: #ffffff; /* Color de fondo al pasar el mouse */
+    transform: scale(1.05); /* Escalar ligeramente el botón */
+}
+
+.btnRegistro:focus {
+    outline: none; /* Sin contorno al enfocar */
+}
+
+.title {
+    color: #ffffff;
+    position: absolute; /* Coloca el título en una posición absoluta */
+    top: 10px; /* Ajusta la posición en la parte superior */
+    left: 10px; /* Ajusta la posición hacia la izquierda */
+    z-index: 10; /* Asegura que esté delante de otros elementos */
+    transform: translate(360px, 80px);
+    font-family: 'aton'; /* Fuente estilo anime */
+    font-size: 3rem; /* Ajusta el tamaño según el estilo que desees */
+   
+}
+.imgAcesso{
+    transform: translate(20px);
+    margin-top: -60px;
+}
+.emailRegistro{
+    margin-top: 1rem;
+    transform: translateY(10px);
+}
+
+/* Imagen geométrica */
+.imgGeometrico {
+    position: absolute; /* Posiciona la imagen de manera absoluta */
+    z-index: -10; /* Coloca la imagen detrás de todo */
+    transform: translate(-50%, -50%) translate(1px, -275px); /* Ajusta la posición */
+    opacity: 0.5; /* Ajusta la opacidad si es necesario para que no interfiera demasiado */
+}
+
+.imgGeometrico2{
+    transform:translate(-420px, -420px)
+}
+
+.tables {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Espacio entre las tablas */
+    margin: 20px 0; /* Margen superior e inferior */
+}
+
+.table {
+    background-color: #ffffff; /* Fondo blanco para las tablas */
+    border-radius: 8px; /* Esquinas redondeadas */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    padding: 20px; /* Espaciado interno */
+}
+
+.table h3 {
+    margin-bottom: 15px; /* Espacio entre el título y la tabla */
+    font-size: 1.5em; /* Tamaño del título */
+    color: #333; /* Color del título */
+}
+
+table {
+    width: 100%; /* Ancho completo */
+    border-collapse: collapse; /* Colapsar bordes */
+}
+
+thead {
+    background-color: #f2f2f2; /* Fondo gris claro para el encabezado */
+}
+
+th, td {
+    padding: 12px; /* Espaciado interno */
+    text-align: left; /* Alinear texto a la izquierda */
+    border-bottom: 1px solid #ddd; /* Línea de separación entre filas */
+}
+
+tr:hover {
+    background-color: #f9f9f9; /* Color de fondo al pasar el ratón */
+}
+
+th {
+    color: #555; /* Color de texto del encabezado */
+    font-weight: bold; /* Negrita para el encabezado */
+}
+
+.login-section active{
+    display: block;
+    margin-bottom: 80px;
+}
+

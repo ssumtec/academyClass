@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="Styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/Toastify.min.css"> <!-- Biblioteca para notificaciones -->
+    <script src="ConexionBD.js" defer></script>
+    <title>Gamechecho</title>
+</head>
+<body>
+    <div class="container">
+        <!-- <h2 class="title">Bienvenidos</h2> -->
+        <div class="login-wrapper">
+            <div class="image-container" id="image-container">
+                <img src="https://i.pinimg.com/564x/12/4d/d1/124dd11722d6a5e226b43ecd491764c7.jpg" alt="Descripción de la imagen" />
+            </div>
+            <div class="login-section active" id="login-section">
+                <img class="logo" src="img/logoEmpresa.png" alt="Descripción de la imagen" width="230" height="120"><br>
+                <input type="email" id="emailA" placeholder="Ingrese correo electrónico" />
+                <input type="password" id="passA" placeholder="Ingrese contraseña" />
+                <button class="btnAcess" onclick="acceso()">Iniciar Sesión</button>
+                <p class="forgot-password">
+                    <a href="#" onclick="recuperarContrasena()">¿Olvidaste tu contraseña?</a>
+                </p>
+                <p class="toggle-text">¿No tienes cuenta? <a href="#" id="show-register">Regístrate aquí</a></p>
+                <!-- Contenedor de los botones -->
+                <div class="social-login-buttons">
+                    <button id="google-login-btn" class="google-button">
+                        <i class="fab fa-google"></i>
+                    </button>
+                    <button id="microsoft-login-btn" class="microsoft-button">
+                        <i class="fab fa-microsoft"></i>
+                    </button>
+                    <button id="facebook-login-btn" class="facebook-button">
+                        <i class="fab fa-facebook-f"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="register-section" id="register-section">
+        <img class="imgAcesso" src="img/img-registro.png" alt="Descripción de la imagen" width="280" height="230">
+        <!-- <h1>Registro</h1> -->
+        <input class="emailRegistro" type="email" id="email" placeholder="Ingrese correo electrónico" />
+        <input type="password" id="pass" placeholder="Ingrese contraseña" />
+        <button class="btnRegistro" onclick="enviar()">Registrarse</button>
+        <p class="toggle-text">¿Ya tienes cuenta? <a href="#" id="show-login">Inicia sesión aquí</a></p>
+    </div>
+    <div>
+        <img class="imgGeometrico" id="imgGeometrico" src="img/geometrico.png" alt="Descripción de la imagen" width="680" height="620">
+    </div>
+    <img class="imgGeometrico2" id="imgGeometrico2" src="img/geometrico2.png" alt="Descripción de la imagen" width="400" height="380">
+    
+ 
+
+    <!-- Firebase JS -->
+    <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-auth.js"></script>
+    <script src="ConexionBD.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/Toastify.min.js"></script> <!-- Biblioteca para notificaciones -->
+
+    <!-- Script para alternar entre vistas -->
+    <script>
+        // Obtén las secciones y elementos necesarios
+        const loginSection = document.getElementById('login-section');
+        const registerSection = document.getElementById('register-section');
+        const imgGeometrico = document.getElementById('imgGeometrico');
+        const imgGeometrico2 = document.getElementById('imgGeometrico2');
+        const showRegister = document.getElementById('show-register');
+        const showLogin = document.getElementById('show-login');
+        const imageContainer = document.getElementById('image-container'); // Contenedor de la imagen
+    
+        // Oculta la imagen geométrica al iniciar si estás en la sección de login
+        window.onload = () => {
+            imgGeometrico.style.display = 'none';  // Asegúrate de ocultarla al inicio en la sección de login
+            imgGeometrico2.style.display = 'none';
+            imageContainer.style.display = 'block';  // Muestra la imagen del login
+        }
+    
+        // Evento para cambiar a la vista de registro
+        showRegister.addEventListener('click', () => {
+            loginSection.classList.remove('active');
+            registerSection.classList.add('active');
+            imageContainer.style.display = 'none'; // Oculta la imagen del login
+            imgGeometrico.style.display = 'block'; // Muestra la imagen geométrica
+            imgGeometrico2.style.display = 'block';
+        });
+    
+        // Evento para cambiar a la vista de login
+        showLogin.addEventListener('click', () => {
+            registerSection.classList.remove('active');
+            loginSection.classList.add('active');
+            imageContainer.style.display = 'block'; // Muestra la imagen del login
+            imgGeometrico.style.display = 'none'; // Oculta la imagen geométrica
+            imgGeometrico2.style.display = 'none'; 
+        });
+    </script>
+</body>
+</html>
