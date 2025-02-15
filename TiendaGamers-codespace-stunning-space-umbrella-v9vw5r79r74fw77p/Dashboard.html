@@ -10,7 +10,17 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+
   <style>
+    body {
+    background-image: url('https://i.pinimg.com/736x/0a/bc/d5/0abcd5acd0207e7ad71c0ef03322a019.jpg');
+    background-size: cover; /* Ajusta la imagen al tamaño de la pantalla */
+    background-position: center; /* Centra la imagen */
+    background-attachment: fixed; /* Hace que la imagen no se desplace al hacer scroll */
+}
     /* Pequeños ajustes de estilo */
     .container { margin-top: 2rem; }
     footer { margin-top: 2rem; padding: 1rem; background: #f8f9fa; text-align: center; }
@@ -37,30 +47,78 @@
 
     // Obtiene y almacena las asignaturas desde Firestore y llena el select en la matrícula
     function fetchCourses() {
-      db.collection('asignaturas').get().then(snapshot => {
-        coursesCache = [];
-        snapshot.forEach(doc => {
-          let data = doc.data();
+  db.collection('asignaturas').get()
+    .then(snapshot => {
+      coursesCache = [];
+      snapshot.forEach(doc => {
+        let data = doc.data();
+        if (data.nombre && data.numero_creditos) {  // Verifica que los datos sean correctos
           data.id = doc.id;
           coursesCache.push(data);
-        });
-        populateCoursesSelect();
-      }).catch(err => console.error("Error al obtener asignaturas:", err));
-    }
-
-    // Llena el select del modal de matrícula con las asignaturas
-    function populateCoursesSelect() {
-      let select = document.getElementById('curso');
-      select.innerHTML = '';
-      coursesCache.forEach(course => {
-        let option = document.createElement('option');
-        option.value = course.id;
-        option.text = course.nombre + " (" + course.numero_creditos + " créditos)";
-        // Se almacena el prerrequisito en un atributo (opcional)
-        option.setAttribute('data-prerequisito', course.prerequisito || '');
-        select.appendChild(option);
+        } else {
+          console.error(`Documento con ID ${doc.id} tiene datos incompletos.`);
+        }
       });
-    }
+
+      if (coursesCache.length === 0) {
+        console.warn("No hay asignaturas en la base de datos. Usando datos manuales.");
+        coursesCache = [
+          { id: "curso1", nombre: "Matemáticas", numero_creditos: 3 },
+          { id: "curso2", nombre: "Programación", numero_creditos: 4 },
+          { id: "curso3", nombre: "Física", numero_creditos: 3 }
+        ];
+      }
+
+      populateCoursesSelect();
+    })
+    .catch(err => {
+      console.error("Error al obtener asignaturas:", err);
+      alert("Error al cargar los cursos. Verifica la conexión.");
+    });
+}
+
+function populateProfessorSelects() {
+    const professorNames = ["Juan Pérez", "María Gómez", "Carlos Rodríguez"];
+    
+    document.querySelectorAll('.profesor-select').forEach(select => {
+        select.innerHTML = ""; // Limpiar el select antes de agregar opciones
+        
+        professorNames.forEach(name => {
+            const option = document.createElement("option");
+            option.value = name;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+    });
+}
+
+// Llamar a la función después de cargar la tabla
+populateProfessorSelects();
+
+function populateCoursesSelect() {
+  let select = document.getElementById('curso');
+  if (!select) {
+    console.error("El elemento <select id='curso'> no existe en el DOM.");
+    return;
+  }
+
+  select.innerHTML = ''; // Limpia las opciones anteriores
+  if (coursesCache.length === 0) {
+    let option = document.createElement('option');
+    option.value = "";
+    option.text = "No hay cursos disponibles";
+    select.appendChild(option);
+    return;
+  }
+
+  coursesCache.forEach(course => {
+    let option = document.createElement('option');
+    option.value = course.id;
+    option.text = `${course.nombre} (${course.numero_creditos} créditos)`;
+    option.setAttribute('data-prerequisito', course.prerequisito || '');
+    select.appendChild(option);
+  });
+}
 
     // ----- CRUD de Estudiantes -----
     // Obtiene la lista de estudiantes y la muestra en la tabla
@@ -150,106 +208,95 @@
     function openEnrollModal(docId, identificacion, apellidos, nombres) {
       document.getElementById('enrollForm').reset();
       document.getElementById('enrollStudentId').value = docId;
-      document.getElementById('enrollStudentInfo').innerText = 'Estudiante: ' + identificacion + ' ' + apellidos + ', ' + nombres;
+      document.getElementById('enrollStudentInfo').innerText = 'Estudiante: ' + ' ' + apellidos + nombres;
       $('#enrollModal').modal('show');
     }
 
-    // Realiza la matrícula validando: prerrequisito, si ya se cursó y límite de créditos.
-    async function enrollCourse(e) {
-      e.preventDefault();
-      const studentId = document.getElementById('enrollStudentId').value;
-      const courseId = document.getElementById('curso').value;
-      const periodo = document.getElementById('periodo').value;
-      const estado = document.getElementById('estado').value;
-      const notaFinal = parseFloat(document.getElementById('notaFinal').value);
-      const file = document.getElementById('enrollFile').files[0];
+   // Realiza la matrícula validando requisitos y agregando el campo del profesor.
+async function enrollCourse(e) {
+  e.preventDefault();
+  const studentId = document.getElementById('enrollStudentId').value;
+  const courseId = document.getElementById('curso').value;
+  const periodo = document.getElementById('periodo').value;
+  const estado = document.getElementById('estado').value;
+  const notaFinal = parseFloat(document.getElementById('notaFinal').value);
+  const profesor = document.getElementById('profesor').value; // Nuevo campo
 
-      // Busca los detalles del curso seleccionado en el cache
-      const course = coursesCache.find(c => c.id === courseId);
-      if (!course) {
-        alert("Curso no encontrado");
-        return;
-      }
+  if (!profesor.trim()) {
+    alert("Debe ingresar el nombre del profesor.");
+    return;
+  }
 
-      // Validación a: Comprobar prerrequisito (si existe)
-      if (course.prerequisito) {
-        const prereqSnapshot = await db.collection('asignaturas_cursadas')
-          .where('studentId', '==', studentId)
-          .where('asignaturaId', '==', course.prerequisito)
-          .get();
-        if (prereqSnapshot.empty) {
-          alert("No se ha cursado el prerrequisito requerido para este curso.");
-          return;
-        }
-      }
+  // Busca los detalles del curso seleccionado en el cache
+  const course = coursesCache.find(c => c.id === courseId);
+  if (!course) {
+    alert("Curso no encontrado");
+    return;
+  }
 
-      // Validación b: No se puede matricular asignatura ya cursada
-      const alreadyTakenSnapshot = await db.collection('asignaturas_cursadas')
-          .where('studentId', '==', studentId)
-          .where('asignaturaId', '==', courseId)
-          .get();
-      if (!alreadyTakenSnapshot.empty) {
-        alert("Ya se ha cursado esta asignatura.");
-        return;
-      }
-
-      // Validación c: Verificar que el total de créditos no supere 22
-      const enrolledSnapshot = await db.collection('cursos_matriculados')
-        .where('studentId', '==', studentId)
-        .where('periodo', '==', periodo)
-        .get();
-      let totalCredits = 0;
-      enrolledSnapshot.forEach(doc => {
-        const data = doc.data();
-        const enrolledCourse = coursesCache.find(c => c.id === data.asignaturaId);
-        if (enrolledCourse) {
-          totalCredits += enrolledCourse.numero_creditos;
-        }
-      });
-      if (totalCredits + course.numero_creditos > 22) {
-        alert("El número máximo de créditos (22) se excedería al matricular este curso.");
-        return;
-      }
-
-      // Si se selecciona un archivo, se sube a Firebase Storage
-      let fileUrl = "";
-      if (file) {
-        const storageRef = storage.ref();
-        const fileRef = storageRef.child('enrollments/' + Date.now() + '_' + file.name);
-        try {
-          await fileRef.put(file);
-          fileUrl = await fileRef.getDownloadURL();
-        } catch (error) {
-          console.error("Error al subir archivo:", error);
-          alert("Error al subir archivo.");
-          return;
-        }
-      }
-
-      // Prepara los datos de matrícula
-      const enrollmentData = {
-        studentId: studentId,
-        asignaturaId: courseId,
-        periodo: periodo,
-        estado: estado,
-        notaFinal: notaFinal,
-        numero_creditos: course.numero_creditos,
-        fileUrl: fileUrl,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      };
-
-      // Guarda la matrícula en la colección 'cursos_matriculados'
-      db.collection('cursos_matriculados').add(enrollmentData)
-        .then(() => {
-          $('#enrollModal').modal('hide');
-          alert("Curso matriculado exitosamente.");
-        })
-        .catch(error => {
-          console.error("Error al matricular curso:", error);
-          alert("Error al matricular curso.");
-        });
+  // Validación a: Comprobar prerrequisito (si existe)
+  if (course.prerequisito) {
+    const prereqSnapshot = await db.collection('asignaturas_cursadas')
+      .where('studentId', '==', studentId)
+      .where('asignaturaId', '==', course.prerequisito)
+      .get();
+    if (prereqSnapshot.empty) {
+      alert("No se ha cursado el prerrequisito requerido para este curso.");
+      return;
     }
+  }
 
+  // Validación b: No se puede matricular asignatura ya cursada
+  const alreadyTakenSnapshot = await db.collection('asignaturas_cursadas')
+      .where('studentId', '==', studentId)
+      .where('asignaturaId', '==', courseId)
+      .get();
+  if (!alreadyTakenSnapshot.empty) {
+    alert("Ya se ha cursado esta asignatura.");
+    return;
+  }
+
+  // Validación c: Verificar que el total de créditos no supere 22
+  const enrolledSnapshot = await db.collection('cursos_matriculados')
+    .where('studentId', '==', studentId)
+    .where('periodo', '==', periodo)
+    .get();
+  let totalCredits = 0;
+  enrolledSnapshot.forEach(doc => {
+    const data = doc.data();
+    const enrolledCourse = coursesCache.find(c => c.id === data.asignaturaId);
+    if (enrolledCourse) {
+      totalCredits += enrolledCourse.numero_creditos;
+    }
+  });
+  if (totalCredits + course.numero_creditos > 22) {
+    alert("El número máximo de créditos (22) se excedería al matricular este curso.");
+    return;
+  }
+
+  // Prepara los datos de matrícula con el nuevo campo "profesor"
+  const enrollmentData = {
+    studentId: studentId,
+    asignaturaId: courseId,
+    periodo: periodo,
+    estado: estado,
+    notaFinal: notaFinal,
+    numero_creditos: course.numero_creditos,
+    profesor: profesor, // Se almacena el nombre del profesor
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  // Guarda la matrícula en la colección 'cursos_matriculados'
+  db.collection('cursos_matriculados').add(enrollmentData)
+    .then(() => {
+      $('#enrollModal').modal('hide');
+      alert("Curso matriculado exitosamente.");
+    })
+    .catch(error => {
+      console.error("Error al matricular curso:", error);
+      alert("Error al matricular curso.");
+    });
+}
     // ----- Vista de Detalles del Estudiante -----
     // Muestra una vista modal con los datos del estudiante y sus cursos matriculados
     function viewStudent(docId) {
@@ -269,7 +316,7 @@
               tr.innerHTML = `<td>${courseName}</td>
                               <td>${enrollment.periodo}</td>
                               <td>${enrollment.estado}</td>
-                              <td>${enrollment.notaFinal}</td>`;
+                              <td>${enrollment.profesor}</td>`;
               tbody.appendChild(tr);
             });
             $('#studentDetailsModal').modal('show');
@@ -280,38 +327,81 @@
 
     // Exporta un reporte en formato JSON de los cursos matriculados del estudiante que se ve
     function exportReport() {
-      const studentName = document.getElementById('detailStudentName').innerText;
-      const rows = [];
-      document.querySelectorAll('#detailsCoursesTableBody tr').forEach(tr => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const studentName = document.getElementById('detailStudentName').innerText;
+
+    // Título del documento
+    doc.setFontSize(16);
+    doc.text("Reporte del Estudiante", 70, 15);
+    
+    // Información del estudiante
+    doc.setFontSize(12);
+    doc.text(`Estudiante: ${studentName}`, 14, 25);
+
+    // Extraer datos de la tabla
+    const tableData = [];
+    document.querySelectorAll('#detailsCoursesTableBody tr').forEach(tr => {
         const cols = tr.querySelectorAll('td');
-        rows.push({
-          curso: cols[0].innerText,
-          periodo: cols[1].innerText,
-          estado: cols[2].innerText,
-          notaFinal: cols[3].innerText
-        });
-      });
-      const report = {
-        estudiante: studentName,
-        cursos: rows
-      };
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(report, null, 2));
-      const downloadAnchorNode = document.createElement('a');
-      downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", "reporte_" + studentName + ".json");
-      document.body.appendChild(downloadAnchorNode);
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
-    }
+        tableData.push([
+            cols[0].innerText, // Curso
+            cols[1].innerText, // Periodo
+            cols[2].innerText, // Estado
+            cols[3].innerText  // Profesor
+        ]);
+    });
+
+    // Encabezados de la tabla
+    const headers = [["Curso", "Periodo", "Estado", "Profesor"]];
+
+    // Generar la tabla con estilos
+    doc.autoTable({
+        startY: 30, // Posición inicial de la tabla
+        head: headers,
+        body: tableData,
+        theme: 'grid', // Tema de la tabla (puede ser 'striped', 'grid', 'plain')
+        styles: {
+            fontSize: 10,
+            cellPadding: 3
+        },
+        headStyles: {
+            fillColor: [0, 122, 204], // Color azul para los encabezados
+            textColor: [255, 255, 255], // Texto blanco
+            fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+            fillColor: [240, 240, 240] // Alternar colores de filas
+        },
+        margin: { top: 35 }
+    });
+
+    // Guardar el PDF
+    doc.save(`reporte_${studentName}.pdf`);
+}
+
 
     // Inicialización al cargar la página
     document.addEventListener('DOMContentLoaded', () => {
       fetchStudents();
       fetchCourses();
     });
+    function logout() {
+    firebase.auth().signOut().then(() => {
+      // Redirige a la página de login
+      window.location.href = "Index.html";
+    }).catch((error) => {
+      console.error("Error al cerrar sesión:", error);
+    });
+  }
   </script>
 </head>
 <body>
+
+  <nav class="navbar navbar-light bg-light">
+    <span class="navbar-brand">Sistema de Matrícula Académica</span>
+    <button class="btn btn-danger" onclick="logout()">Cerrar Sesión</button>
+  </nav>
   <!-- Contenedor principal -->
   <div class="container">
     <h2 class="mb-4">Listado de Estudiantes</h2>
@@ -400,13 +490,14 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="notaFinal">Nota Final</label>
-              <input type="number" step="0.1" class="form-control" id="notaFinal" value="0.0" required>
+              <label for="profesor">Nombre del Profesor:</label>
+              <input type="text" class="form-control" id="profesor" placeholder="Ingrese el nombre del profesor">
             </div>
             <div class="form-group">
-              <label for="enrollFile">Cargar archivo (pdf, jpg, png)</label>
-              <input type="file" class="form-control-file" id="enrollFile" accept=".pdf, .jpg, .jpeg, .png">
+              <label for="notaFinal">Nota Final</label>
+              <input type="number" step="0.1" class="form-control" id="notaFinal" value="0.0" required disabled>
             </div>
+           
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
@@ -420,40 +511,64 @@
   <!-- Modal: Detalles del Estudiante y Reporte -->
   <div class="modal fade" id="studentDetailsModal" tabindex="-1" role="dialog" aria-labelledby="studentDetailsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Detalles del Estudiante</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-            <span aria-hidden="true">&times;</span>
-          </button>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Estudiante</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h6 id="detailStudentName"></h6>
+                <table class="table table-bordered mt-3">
+                  <thead>
+                    <tr>
+                      <th>Curso</th>
+                      <th>Periodo</th>
+                      <th>Estado</th>
+                      <th>Profesor</th>
+                    </tr>
+                  </thead>
+                  <tbody id="detailsCoursesTableBody">
+                    <tr>
+                      <td>Matemáticas</td>
+                      <td>2024-1</td>
+                      <td>Aprobado</td>
+                      <td>
+                        <select class="profesor-select">
+                          <option value="Juan Pérez">Juan Pérez</option>
+                          <option value="María Gómez">María Gómez</option>
+                          <option value="Carlos Rodríguez">Carlos Rodríguez</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Historia</td>
+                      <td>2024-1</td>
+                      <td>Pendiente</td>
+                      <td>
+                        <select class="profesor-select">
+                          <option value="Juan Pérez">Juan Pérez</option>
+                          <option value="María Gómez">María Gómez</option>
+                          <option value="Carlos Rodríguez">Carlos Rodríguez</option>
+                        </select>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-info" onclick="exportReport()">Exportar Reporte</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
         </div>
-        <div class="modal-body">
-          <h6 id="detailStudentName"></h6>
-          <table class="table table-bordered mt-3">
-            <thead>
-              <tr>
-                <th>Curso</th>
-                <th>Periodo</th>
-                <th>Estado</th>
-                <th>Nota Final</th>
-              </tr>
-            </thead>
-            <tbody id="detailsCoursesTableBody">
-              <!-- Se llenará dinámicamente -->
-            </tbody>
-          </table>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-info" onclick="exportReport()">Exportar Reporte</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-        </div>
-      </div>
     </div>
-  </div>
+</div>
+
 
   <!-- Footer (barra de navegación inferior, opcional) -->
   <footer>
-    <p>&copy; 2025 Sistema Académico | Desarrollado con Firebase y Bootstrap</p>
+    <p>&copy; 2025 Sistema Académico | Desarrollado por Jefferson Sanguino</p>
   </footer>
 
   <!-- Bootstrap JS y dependencias -->
